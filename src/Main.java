@@ -1,3 +1,7 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.FileReader;
+
 public class Main {
 
     public static LinkedPositionalList<Watcher> watcher_list = new LinkedPositionalList<>();
@@ -14,29 +18,77 @@ public class Main {
     }
 
     public void run(){
+        try {
+            BufferedReader watcherReader = new BufferedReader(new FileReader(watcherFile));
+            BufferedReader incidentReader = new BufferedReader(new FileReader(incidentFile));
+            int current_time = 0;
 
+            while(watcherReader.readLine() != null || incidentReader.readLine() != null){
+                String watcherLine = watcherReader.readLine();
+                String incidentLine = incidentReader.readLine();
+                int watcherTime = Integer.parseInt(watcherLine.substring(0, watcherLine.indexOf(' ')));
+                int incidentTime = Integer.parseInt(incidentLine.substring(0, incidentLine.indexOf(' ')));
+
+                if (watcherLine != null && watcherTime == current_time){
+                    String[] watcherArgs = watcherLine.trim().split("\\s+");
+                    switch (watcherArgs[1]) {
+                        case "add":
+                            createWatcher(watcherLine);
+                            break;
+                        case "delete":
+                            deleteWatcher(watcherLine);
+                            break;
+                        case "query-highest":
+                            queryHighest();
+                            break;
+                        case "query-disease":
+                            queryDisease(watcherArgs[2]);
+                            break;
+                        case "query-region":
+                            float latitude = Float.parseFloat(watcherArgs[2]);
+                            float longitude = Float.parseFloat(watcherArgs[3]);
+                            int radius = Integer.parseInt(watcherArgs[4]);
+                            queryRegion(latitude, longitude, radius);
+                            break;
+                    }
+                }
+
+                if (incidentLine != null && incidentTime == current_time){
+                    Incident incident = createIncident(incidentLine);
+                    updateIncidentQueue(current_time);
+                    addIncident(incident);
+                    notifyWatchers(incident);
+                }
+                current_time++;
+            }
+
+        }
+        catch (IOException e){
+            System.out.println("Error reading files: " + e.getMessage());
+        }
     }
 
-    public static Watcher createWatcher(String line){
+    public static void createWatcher(String line){
         String[] arguments = line.trim().split("\\s+");
         int time = Integer.parseInt(arguments[0]);
         float latitude = Float.parseFloat(arguments[2]);
         float longitude = Float.parseFloat(arguments[3]);
         String name = arguments[4];
+        Watcher watcher = new Watcher(name, latitude, longitude, time);
+        watcher_list.addLast(watcher);
         System.out.println(name + " is added to the watcher-list");
-        return new Watcher(name, latitude, longitude, time);
     }
 
-    public static Watcher deleteWatcher(String line) {
+    public static void deleteWatcher(String line) {
         String[] arguments = line.trim().split("\\s+");
         String name = arguments[2];
         for (Position<Watcher> p : watcher_list.positions()){
             if (p.getElement().getName().equals(name)) {
                 System.out.println(name + " is removed from the watcher-list");
-                return watcher_list.remove(p);
+                watcher_list.remove(p);
+                return;
             }
         }
-        return null;
     }
 
     public static void queryHighest(){
