@@ -107,7 +107,7 @@ public class Main {
 
     public static void queryHighest(){
         if (severity_order_list.isEmpty()) {
-            System.out.println("No incidents");
+            System.out.println("No records");
         }
         else{
             Incident highest = severity_order_list.first().getElement();
@@ -214,7 +214,7 @@ public class Main {
             float x = watcher.getLatitude() - incident.getLatitude();
             float y = watcher.getLongitude() - incident.getLongitude();
             double distance = Math.sqrt(x*x + y*y);
-            if (distance <= 2 * incident.getSeverity()) {
+            if (distance < 2 * incident.getSeverity()) {
                 System.out.println("(Disease: " + incident.getDisease() + ") at " + incident.getLocation() + " is close to " + watcher.getName());
             }
         }
