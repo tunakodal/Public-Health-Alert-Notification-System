@@ -24,7 +24,6 @@ public class Main {
 
             int current_time = 0;
 
-
             String watcherLine = watcherReader.readLine();
             String incidentLine = incidentReader.readLine();
             int watcherTime = parseTime(watcherLine) != null ? parseTime(watcherLine) : -1;
