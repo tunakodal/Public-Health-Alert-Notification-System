@@ -15,7 +15,7 @@ public class HealthAlertNotification {
             incidentFile = args[2];
 
         } else {
-            System.out.println("Usage: java HealthAlertNotification <watcher_file> <incident_file>");
+            System.out.println("Usage: java HealthAlertNotification (--all) <watcher_file> <incident_file>");
             return;
         }
 

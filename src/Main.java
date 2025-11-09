@@ -21,15 +21,18 @@ public class Main {
         try {
             BufferedReader watcherReader = new BufferedReader(new FileReader(watcherFile));
             BufferedReader incidentReader = new BufferedReader(new FileReader(incidentFile));
+
             int current_time = 0;
 
-            while(watcherReader.readLine() != null || incidentReader.readLine() != null){
-                String watcherLine = watcherReader.readLine();
-                String incidentLine = incidentReader.readLine();
-                int watcherTime = Integer.parseInt(watcherLine.substring(0, watcherLine.indexOf(' ')));
-                int incidentTime = Integer.parseInt(incidentLine.substring(0, incidentLine.indexOf(' ')));
 
-                if (watcherLine != null && watcherTime == current_time){
+            String watcherLine = watcherReader.readLine();
+            String incidentLine = incidentReader.readLine();
+            int watcherTime = parseTime(watcherLine) != null ? parseTime(watcherLine) : -1;
+            int incidentTime = parseTime(incidentLine) != null ? parseTime(incidentLine) : -1;
+
+            while(watcherLine != null || incidentLine != null){
+
+                if (watcherLine != null && watcherTime != -1 && watcherTime == current_time){
                     String[] watcherArgs = watcherLine.trim().split("\\s+");
                     switch (watcherArgs[1]) {
                         case "add":
@@ -51,21 +54,33 @@ public class Main {
                             queryRegion(latitude, longitude, radius);
                             break;
                     }
+                    watcherLine = watcherReader.readLine();
+                    watcherTime = parseTime(watcherLine) != null ? parseTime(watcherLine) : -1;
+
                 }
 
-                if (incidentLine != null && incidentTime == current_time){
+                if (incidentLine != null && incidentTime != -1 && incidentTime == current_time){
                     Incident incident = createIncident(incidentLine);
                     updateIncidentQueue(current_time);
                     addIncident(incident);
                     notifyWatchers(incident);
+                    incidentLine = incidentReader.readLine();
+                    incidentTime = parseTime(incidentLine) != null ? parseTime(incidentLine) : -1;
                 }
                 current_time++;
+
             }
 
         }
         catch (IOException e){
             System.out.println("Error reading files: " + e.getMessage());
         }
+    }
+
+    private Integer parseTime(String line) {
+        if (line == null) return -1;
+        int sp = line.indexOf(' ');
+        return Integer.parseInt(sp == -1 ? line : line.substring(0, sp));
     }
 
     public static void createWatcher(String line){
@@ -103,11 +118,16 @@ public class Main {
     }
 
     public static void queryDisease(String disease){
+        int count = 0;
         for (Position<Incident> p : severity_order_list.positions()) {
             if (p.getElement().getDisease().equals(disease)) {
                 Incident incident = p.getElement();
                 System.out.println("(Disease: " + incident.getDisease() + ") Severity: " + incident.getSeverity() + " at " + incident.getLocation());
+                count++;
             }
+        }
+        if (count == 0) {
+            System.out.println("No records");
         }
     }
 
